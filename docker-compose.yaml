@@ -1,0 +1,7 @@
+version: '2'
+services:
+  generate:
+    build: .
+    volumes:
+    - .:/app
+    command: python3 main.py
