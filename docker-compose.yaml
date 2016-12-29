@@ -5,3 +5,20 @@ services:
     volumes:
     - .:/app
     command: python3 main.py
+  server:
+    build: .
+    ports:
+    - "8000:5000"
+    volumes:
+    - .:/app
+    command: python web.py
+  dev:
+    build: .
+    ports:
+    - "8001:5000"
+    volumes:
+    - .:/app
+    environment:
+    - FLASK_DEBUG=1
+    command: python web.py
+

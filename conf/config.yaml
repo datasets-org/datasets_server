@@ -4,4 +4,4 @@ datasets:
 - "data"
 storage_replace:
 - - '/app/data/'
-  - '/mfs/replicated/datasets/'
+  - '/data/'
