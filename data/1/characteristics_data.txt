@@ -1,0 +1,34 @@
+files 100
+432K	.
+
+      1 /Dockerfile
+      1 /data/1/b
+      1 /data/1/c
+      1 /data/3/h
+      1 /data/a
+      1 git/HEAD
+      1 git/config
+      1 git/description
+      1 git/index
+      1 git/info/exclude
+      1 git/logs/HEAD
+      1 git/logs/refs/heads/master
+      1 git/logs/refs/remotes/origin/HEAD
+      1 git/objects/21/32ed6aaf84ebe0cd7812dd23462b2cf9eecd18
+      1 git/packed-refs
+      1 git/refs/heads/master
+      1 git/refs/remotes/origin/HEAD
+      1 idx
+      1 iml
+      2 md
+      2 mdb
+      1 pack
+      7 py
+      7 pyc
+      9 sample
+      1 sh
+      8 txt
+      8 xml
+      7 yaml
+
+0

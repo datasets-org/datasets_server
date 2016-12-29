@@ -8,6 +8,9 @@ class Storage(object):
     def delete(self, key):
         raise NotImplementedError()
 
+    def delete_key(self, key, dict_key):
+        raise NotImplementedError()
+
     def get(self, key):
         raise NotImplementedError()
 

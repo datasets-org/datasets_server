@@ -1,0 +1,7 @@
+database_path: database
+iter_file_limit: 200
+datasets:
+- "data"
+storage_replace:
+- - '/app/data/'
+  - '/mfs/replicated/datasets/'
