@@ -1,13 +1,13 @@
-from flask import Flask, request
-
-app = Flask(__name__)
-
-from conf import Cfg
-from storage.lmdbStorage import LmdbStorage
-from datasets import Datasets
-
 import os
 import ujson
+from flask import Flask, request
+from multiprocessing import Process
+
+from conf import Cfg
+from datasets import Datasets
+from storage.lmdbStorage import LmdbStorage
+
+app = Flask(__name__)
 
 cfg = Cfg()
 db = LmdbStorage(cfg)
@@ -66,9 +66,19 @@ def reload():
 
 @app.route("/scan")
 def scan():
+    p = Process(target=_scan_proc)
+    p.start()
+    return '', 200
+
+
+def _scan_proc():
+    # this func is called from another process (passing objects may be bad idea)
+    cfg = Cfg()
+    db = LmdbStorage(cfg)
+    db.load()
+    d = Datasets(cfg, db)
     d.scan(cfg["datasets"])
     db.load()
-    return '', 200
 
 
 @app.route("/new")

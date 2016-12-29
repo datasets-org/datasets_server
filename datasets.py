@@ -211,7 +211,7 @@ class Datasets(object):
                             cnt = int(cnt)
                             if "csv" not in data:
                                 data["csv"] = {}
-                            data["extensions"][file] = cnt
+                            data["csv"][file] = cnt
                 except Exception as e:
                     print(e)
             return data
