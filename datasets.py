@@ -117,7 +117,7 @@ class Datasets(object):
             for i in self.cfg["storage_replace"]:
                 return [pth.replace(i[0], i[1]) for pth in path]
         else:
-            return path
+            return list(path)
 
     def _find_md(self):
         self.storage.load()
@@ -155,13 +155,12 @@ class Datasets(object):
                         data_pth = os.path.join(p, d)
                         if not os.path.exists(pth):
                             with open(pth, "wb") as f:
-                                subprocess.Popen(
+                                proc = subprocess.Popen(
                                     ["./get_characteristics.sh",
                                      data_pth],
                                     stdout=f)
-                        characteristics[
-                            d] = self._parse_characteristics(
-                            pth)
+                                proc.wait()
+                        characteristics[d] = self._parse_characteristics(pth)
                 ds = self.storage.get(k)
                 if "characteristics" in ds:
                     if characteristics != ds["characteristics"]:
@@ -181,31 +180,40 @@ class Datasets(object):
             phases = ["count", "size", "counts", "csv"]
             phase = 0
             for line in f:
-                if phases[phase] == "count":
-                    cnt = int(line.split()[1])
-                    data["files_cnt"] = cnt
-                    phase += 1
-                    continue
-                if phases[phase] == "size":
-                    if line == "\n":
+                try:
+                    if phases[phase] == "count":
+                        cnt = int(line.split()[1])
+                        data["files_cnt"] = cnt
                         phase += 1
                         continue
-                    size = line.split()[0]
-                    data["files_size"] = size
-                    continue
-                if phases[phase] == "counts":
-                    if line != "\n":
-                        cnt, extension = line.split()
-                        cnt = int(cnt)
-                        if "extensions" not in data:
-                            data["extensions"] = {}
-                        data["extensions"][extension] = cnt
-                    else:
-                        phase += 1
-                    continue
-                if phases[phase] == "csv":
-                    if line == "0\n":
+                    if phases[phase] == "size":
+                        if line == "\n":
+                            phase += 1
+                            continue
+                        size = line.split()[0]
+                        data["files_size"] = size
                         continue
+                    if phases[phase] == "counts":
+                        if line != "\n":
+                            cnt, extension = line.split()
+                            cnt = int(cnt)
+                            if "extensions" not in data:
+                                data["extensions"] = {}
+                            data["extensions"][extension] = cnt
+                        else:
+                            phase += 1
+                        continue
+                    if phases[phase] == "csv":
+                        if line == "0\n":
+                            continue
+                        else:
+                            cnt, file = line.split()
+                            cnt = int(cnt)
+                            if "csv" not in data:
+                                data["csv"] = {}
+                            data["extensions"][file] = cnt
+                except Exception as e:
+                    print(e)
             return data
 
     def find_files(self, folders, searched_filename="dataset.yaml"):
