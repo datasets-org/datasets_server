@@ -116,6 +116,8 @@ class Datasets(object):
         if "storage_replace" in self.cfg:
             for i in self.cfg["storage_replace"]:
                 return [pth.replace(i[0], i[1]) for pth in path]
+        else:
+            return path
 
     def _find_md(self):
         self.storage.load()
