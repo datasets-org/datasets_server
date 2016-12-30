@@ -51,8 +51,10 @@ def use(id):
 
 @app.route("/update/<id>", methods=['POST'])
 def update(id):
-    # todo - this destroys changelog
+    # todo log only which things changed
     data = request.json
+    stored = db.get(id)
+    d.log_change(id, [[None, stored, data, time.time()]])
     db.update(id, data)
     return '', 200
 
