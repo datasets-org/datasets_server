@@ -20,7 +20,7 @@ def main():
     data = {}
     keys = ["name", "tags", "paths"]
     for k, v in db.data.items():
-        data[k] = {key: v[key] for key in keys}
+        data[k] = {key: v[key] for key in keys if key in v}
     return ujson.dumps(data)
 
 
