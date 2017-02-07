@@ -17,7 +17,11 @@ d = Datasets(cfg, db)
 
 @app.route("/")
 def main():
-    return ujson.dumps(db.data)
+    data = {}
+    keys = ["name", "tags", "paths"]
+    for k, v in db.data.items():
+        data[k] = {key: v[key] for key in keys}
+    return ujson.dumps(data)
 
 
 @app.route("/detail/<id>")

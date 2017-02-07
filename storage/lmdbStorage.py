@@ -8,7 +8,7 @@ class LmdbStorage(Storage):
         self.cfg = cfg
         self.data = {}
         # todo set size reasonably
-        self.env = lmdb.open(self.cfg["database_path"], map_size=2 * 1024 ** 3)
+        self.env = lmdb.open(self.cfg["database_path"], map_size=50 * 1024 ** 3)
         super().__init__()
 
     def load(self):
