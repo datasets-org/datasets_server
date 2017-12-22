@@ -5,6 +5,7 @@ import time
 import copy
 import subprocess
 
+# todo what is this a skeleton in the closet?
 skeleton = {
 
 }
@@ -114,7 +115,7 @@ class Datasets(object):
 
     def normalize_path(self, path):
         if "storage_replace" in self.cfg:
-            for i in self.cfg["storage_replace"]:
+            for i in self.cfg.storage_replace:
                 return [pth.replace(i[0], i[1]) for pth in path]
         else:
             return list(path)
@@ -220,7 +221,7 @@ class Datasets(object):
         for folder in folders:
             for root, folders, files in os.walk(folder,
                                                 followlinks=True):
-                if len(files) > int(self.cfg["iter_file_limit"]):
+                if len(files) > int(self.cfg.iter_file_limit):
                     continue
                 for filename in files:
                     if "*" in searched_filename:

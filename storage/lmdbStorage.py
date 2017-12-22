@@ -8,11 +8,11 @@ class LmdbStorage(Storage):
         self.cfg = cfg
         self.data = {}
         # todo set size reasonably
-        self.env = lmdb.open(self.cfg["database_path"], map_size=50 * 1024 ** 3)
+        self.env = lmdb.open(self.cfg.database_path, map_size=50 * 1024 ** 3)
         super().__init__()
 
     def load(self):
-        print("loading storage from {}".format(self.cfg["database_path"]))
+        print("loading storage from {}".format(self.cfg.database_path))
         self.data = {}
         with self.env.begin() as txn:
             cursor = txn.cursor()

@@ -1,15 +1,16 @@
 import os
 import ujson
 from flask import Flask, request
+import time
 from multiprocessing import Process
 
-from conf import Cfg
+from .conf import DatasetsConf
 from datasets import Datasets
 from storage.lmdbStorage import LmdbStorage
 
 app = Flask(__name__)
 
-cfg = Cfg()
+cfg = DatasetsConf()
 db = LmdbStorage(cfg)
 db.load()
 d = Datasets(cfg, db)
@@ -17,6 +18,8 @@ d = Datasets(cfg, db)
 
 @app.route("/")
 def main():
+    # todo sort
+    # username = request.form['username']
     data = {}
     keys = ["name", "tags", "paths"]
     for k, v in db.data.items():
@@ -63,28 +66,30 @@ def update(id):
     return '', 200
 
 
-@app.route("/reload")
-def reload():
-    # todo way to update periodically
-    db.load()
-    return '', 200
+# todo load data directly from storage
+# @app.route("/reload")
+# def reload():
+#     # todo way to update periodically
+#     db.load()
+#     return '', 200
 
 
-@app.route("/scan")
-def scan():
-    p = Process(target=_scan_proc)
-    p.start()
-    return '', 200
+# @app.route("/scan")
+# def scan():
+#     p = Process(target=_scan_proc)
+#     p.start()
+#     return '', 200
 
 
-def _scan_proc():
-    # this func is called from another process (passing objects may be bad idea)
-    cfg = Cfg()
-    db = LmdbStorage(cfg)
-    db.load()
-    d = Datasets(cfg, db)
-    d.scan(cfg["datasets"])
-    db.load()
+# # todo this has to be killed
+# def _scan_proc():
+#     # this func is called from another process (passing objects may be bad idea)
+#     cfg = Cfg()
+#     db = LmdbStorage(cfg)
+#     db.load()
+#     d = Datasets(cfg, db)
+#     d.scan(cfg["datasets"])
+#     db.load()
 
 
 @app.route("/new")
