@@ -1,9 +1,10 @@
-import uuid
-import os
-import yaml
-import time
 import copy
+import os
 import subprocess
+import time
+
+import yaml
+from .datasets import Datasets
 
 # todo what is this a skeleton in the closet?
 skeleton = {
@@ -11,10 +12,10 @@ skeleton = {
 }
 
 
-class Datasets(object):
+class DatasetsLocal(Datasets):
     def __init__(self, cfg, storage):
         self.cfg = cfg
-        self.storage = storage
+        self._storage = storage
         self.generated_fields = {"paths", "links", "_paths", "_links",
                                  "paths_new", "links_new",
                                  "changelog", "type", "usages",
@@ -28,7 +29,7 @@ class Datasets(object):
             ds = yaml.load(open(ds_path))
             if ds:
                 uid = ds["id"]
-                stored_ds = self.storage.get(uid)
+                stored_ds = self._storage.get(uid)
                 field = "paths_new"
                 if os.path.islink(path):
                     field = "links_new"
@@ -68,30 +69,30 @@ class Datasets(object):
                     self.log_change(uid, actions)
                 del ds["id"]
                 for i in removed:
-                    self.storage.delete_key(uid, i)
-                self.storage.update(uid, ds)
+                    self._storage.delete_key(uid, i)
+                self._storage.update(uid, ds)
         self._merge_paths()
         self._find_md()
         self._find_characteristics()
 
     def log_change(self, uid, changes):
-        stored_ds = self.storage.get(uid)
+        stored_ds = self._storage.get(uid)
         ds = {}
         if not stored_ds or (stored_ds and "changelog" not in stored_ds):
             ds["changelog"] = []
         elif stored_ds:
             ds["changelog"] = stored_ds["changelog"]
         ds["changelog"].append(changes)
-        self.storage.update(uid, ds)
+        self._storage.update(uid, ds)
 
     def _merge_paths(self):
         # todo may trigger alerts (when null, ...)
-        self.storage.load()
+        self._storage.load()
         key_pairs = [
             ("paths", "paths_new"),
             ("links", "links_new"),
         ]
-        for k, v in self.storage.data.items():
+        for k, v in self._storage.data.items():
             changes = []
             for i in key_pairs:
                 if i[1] in v:
@@ -111,7 +112,7 @@ class Datasets(object):
                         del v[i[0]]
             if changes:
                 self.log_change(k, changes)
-            self.storage.put(k, v)
+            self._storage.put(k, v)
 
     def normalize_path(self, path):
         if "storage_replace" in self.cfg:
@@ -121,32 +122,32 @@ class Datasets(object):
             return list(path)
 
     def _find_md(self):
-        self.storage.load()
-        for k, v in self.storage.data.items():
+        self._storage.load()
+        for k, v in self._storage.data.items():
             if "_paths" in v:
                 markdowns = self.normalize_path(
                     self.find_files(v["_paths"], searched_filename="*.md"))
                 raw_markdowns = [i for i in self.find_files(v["_paths"],
                                                             searched_filename="*.md")]
-                saved = self.storage.get(k)
+                saved = self._storage.get(k)
                 if saved:
                     if "markdowns" in saved:
                         if saved["markdowns"] != markdowns:
                             self.log_change(k, [["markdowns",
                                                  saved["markdowns"],
-                                                markdowns, time.time()]])
+                                                 markdowns, time.time()]])
                     else:
                         if markdowns:
                             self.log_change(k, [["markdowns", None,
-                                            markdowns, time.time()]])
-                self.storage.update(k, {
+                                                 markdowns, time.time()]])
+                self._storage.update(k, {
                     "markdowns": markdowns,
                     "_markdowns": raw_markdowns
                 })
 
     def _find_characteristics(self):
-        self.storage.load()
-        for k, v in self.storage.data.items():
+        self._storage.load()
+        for k, v in self._storage.data.items():
             if "_paths" in v and "data" in v:
                 characteristics = {}
                 for p in v["_paths"]:
@@ -162,7 +163,7 @@ class Datasets(object):
                                     stdout=f)
                                 proc.wait()
                         characteristics[d] = self._parse_characteristics(pth)
-                ds = self.storage.get(k)
+                ds = self._storage.get(k)
                 if "characteristics" in ds:
                     if characteristics != ds["characteristics"]:
                         self.log_change(k, [["characteristics",
@@ -171,8 +172,8 @@ class Datasets(object):
                 else:
                     if characteristics:
                         self.log_change(k, [["characteristics", None,
-                                         characteristics, time.time()]])
-                self.storage.update(k, {
+                                             characteristics, time.time()]])
+                self._storage.update(k, {
                     "characteristics": characteristics})
 
     def _parse_characteristics(self, pth):
@@ -231,19 +232,3 @@ class Datasets(object):
                     else:
                         if filename == searched_filename:
                             yield os.path.join(root, filename)
-
-    def generate(self):
-        while True:
-            uid = str(uuid.uuid4())
-            if not self.storage.get(uid):
-                return uid
-
-    def use(self, key, data={}):
-        ds = self.storage.get(key)
-        if "usages" not in ds:
-            ds["usages"] = []
-        data.update({
-            "timestamp": time.time(),
-        })
-        ds["usages"].append(data)
-        self.storage.update(key, ds)

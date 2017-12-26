@@ -1,6 +1,6 @@
 import ujson
 import lmdb
-from storage.storage import Storage
+from .storage import Storage
 
 
 class LmdbStorage(Storage):

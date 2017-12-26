@@ -4,8 +4,9 @@ from flask import Flask, request
 import time
 from multiprocessing import Process
 
+from datasets.datasets import generate
 from .conf import DatasetsConf
-from datasets import Datasets
+from datasets import DatasetsLocal
 from storage.lmdbStorage import LmdbStorage
 
 app = Flask(__name__)
@@ -13,7 +14,7 @@ app = Flask(__name__)
 cfg = DatasetsConf()
 db = LmdbStorage(cfg)
 db.load()
-d = Datasets(cfg, db)
+d = DatasetsLocal(cfg, db)
 
 
 @app.route("/")
@@ -94,7 +95,7 @@ def update(id):
 
 @app.route("/new")
 def new():
-    return ujson.dumps(d.generate())
+    return ujson.dumps(generate(d.storage))
 
 
 if __name__ == "__main__":

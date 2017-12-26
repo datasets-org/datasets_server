@@ -21,4 +21,8 @@ services:
     environment:
     - FLASK_DEBUG=1
     command: python web.py
-
+  tests:
+    build: tests
+    volumes:
+    - "./:/app"
+    command: pytest tests
