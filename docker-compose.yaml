@@ -26,3 +26,10 @@ services:
     volumes:
     - "./:/app"
     command: pytest tests
+  http:
+    image: nginx
+    volumes:
+    - "./http_conf:/etc/nginx/conf.d/"
+    - "./data:/data"
+#    ports:
+#    - "80:80"
