@@ -19,12 +19,17 @@ d = DatasetsLocal(cfg, db)
 
 @app.route("/")
 def main():
-    # todo sort
-    # username = request.form['username']
+    # todo sort by what?
+    sort = False
+    if "sort" in request.form:
+        sort = bool(request.form['sort'])
     data = {}
     keys = ["name", "tags", "paths"]
     for k, v in db.data.items():
         data[k] = {key: v[key] for key in keys}
+    if sort:
+        sort_by = "name"
+        data = sorted(data.items(), key=lambda x: x[1][sort_by])
     return ujson.dumps(data)
 
 
