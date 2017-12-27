@@ -23,6 +23,8 @@ services:
     command: python web.py
   tests:
     build: tests
+    depends_on:
+    - http
     volumes:
     - "./:/app"
     command: pytest tests

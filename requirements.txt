@@ -3,3 +3,4 @@ ujson
 lmdb
 flask
 confobj
+urljoin

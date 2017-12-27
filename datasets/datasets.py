@@ -8,6 +8,7 @@ class Datasets(object):
     def __init__(self, storage: Storage) -> None:
         assert isinstance(storage, Storage)
         self._storage: Storage = storage
+        self.datsets_filename = "dataset.yaml"
 
     def generate(self) -> str:
         while True:
