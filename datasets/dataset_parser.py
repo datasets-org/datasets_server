@@ -43,4 +43,21 @@ class Dataset(object):
         return self.get("tags")
 
     def dict(self) -> dict:
-        return vars(self)
+        d = {
+            "id": self.id
+        }
+        if self.data:
+            d.update({"data": self.data})
+        if self.name:
+            d.update({"name": self.name})
+        if self.internal:
+            d.update({"internal": self.internal})
+        if self.from_ds:
+            d.update({"from": self.from_ds})
+        if self.url:
+            d.update({"url": self.url})
+        if self.maintainer:
+            d.update({"maintainer": self.maintainer})
+        if self.tags:
+            d.update({"tags": self.tags})
+        return d
