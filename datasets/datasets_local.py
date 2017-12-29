@@ -16,10 +16,18 @@ class DatasetsLocal(Datasets):
     def __init__(self, cfg, storage):
         self.cfg = cfg
         self._storage = storage
-        self.generated_fields = {"paths", "links", "_paths", "_links",
-                                 "paths_new", "links_new",
-                                 "changelog", "type", "usages",
-                                 "characteristics", "_markdowns", "markdowns"}
+        self.generated_fields = {"paths",
+                                 "_paths",
+                                 "links",
+                                 "_links",
+                                 "paths_new",
+                                 "links_new",
+                                 "changelog",
+                                 "type",
+                                 "usages",
+                                 "characteristics",
+                                 "_markdowns",
+                                 "markdowns"}
 
     def scan(self, folders):
         for ds_path in self.find_files(folders):
@@ -76,6 +84,7 @@ class DatasetsLocal(Datasets):
         self._find_characteristics()
 
     def log_change(self, uid, changes):
+        # todo change to dataset method - log change
         stored_ds = self._storage.get(uid)
         ds = {}
         if not stored_ds or (stored_ds and "changelog" not in stored_ds):
@@ -122,13 +131,17 @@ class DatasetsLocal(Datasets):
             return list(path)
 
     def _find_md(self):
+        # todo no load before
         self._storage.load()
+        # todo call for explict dataset
+        # todo make dataset method
         for k, v in self._storage.data.items():
             if "_paths" in v:
                 markdowns = self.normalize_path(
                     self.find_files(v["_paths"], searched_filename="*.md"))
-                raw_markdowns = [i for i in self.find_files(v["_paths"],
-                                                            searched_filename="*.md")]
+                raw_markdowns = [i for i in
+                                 self.find_files(v["_paths"],
+                                                 searched_filename="*.md")]
                 saved = self._storage.get(k)
                 if saved:
                     if "markdowns" in saved:
@@ -146,6 +159,7 @@ class DatasetsLocal(Datasets):
                 })
 
     def _find_characteristics(self):
+        # todo makde dataset method
         self._storage.load()
         for k, v in self._storage.data.items():
             if "_paths" in v and "data" in v:
@@ -219,6 +233,7 @@ class DatasetsLocal(Datasets):
             return data
 
     def find_files(self, folders, searched_filename="dataset.yaml"):
+        # todo override
         for folder in folders:
             for root, folders, files in os.walk(folder,
                                                 followlinks=True):

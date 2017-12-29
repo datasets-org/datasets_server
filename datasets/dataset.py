@@ -53,6 +53,9 @@ class Dataset(object):
         changelog = self.get("changelog")
         return changelog if changelog else []
 
+    def log_change(self, changes: dict) -> None:
+        self.changelog.append(changes)
+
     def dict(self) -> dict:
         d = {
             "id": self.id,
