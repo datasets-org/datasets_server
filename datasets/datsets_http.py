@@ -4,7 +4,7 @@ import requests
 from urljoin import url_path_join
 
 from storage.storage import Storage
-from .dataset_parser import Dataset
+from .dataset import Dataset
 from .datasets import Datasets
 from .http_conf import HttpConf
 
@@ -14,7 +14,7 @@ class DatasetsHttpJson(Datasets):
         self._conf = conf
         super().__init__(storage)
 
-    def scan_dir(self, path: str, recursive: bool = True, results = None) -> \
+    def scan_dir(self, path: str, recursive: bool = True, results=None) -> \
             List[Dataset]:
         r = requests.get(url_path_join(self._conf.get_server_address(), path,
                                        trailing_slash=True))
@@ -49,7 +49,9 @@ class DatasetsHttpJson(Datasets):
 
     def analyze_dataset(self):
         # todo
+        # todo find makrdowns
+        # todo characteristics
+        # todo files
+        # todo paths
+        # todo follow changelogs
         pass
-
-
-

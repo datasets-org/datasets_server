@@ -9,6 +9,7 @@ class Dataset(object):
         if "id" not in self._data:
             raise Exception("Dataset is missing an id")
         self.id = self.get("id")
+        # todo separate structure from parse (for DB load)
 
     def get(self, key: str) -> Any:
         return self._data.get(key)
@@ -42,9 +43,21 @@ class Dataset(object):
     def tags(self) -> List[str]:
         return self.get("tags")
 
+    @property
+    def usages(self) -> List[dict]:
+        usages = self.get("usages")
+        return usages if usages else []
+
+    @property
+    def changelog(self) -> List[dict]:
+        changelog = self.get("changelog")
+        return changelog if changelog else []
+
     def dict(self) -> dict:
         d = {
-            "id": self.id
+            "id": self.id,
+            "usages": self.usages,
+            "changelog": self.changelog,
         }
         if self.data:
             d.update({"data": self.data})
