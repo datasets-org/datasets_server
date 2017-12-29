@@ -3,6 +3,8 @@ from typing import Any
 from typing import List
 
 
+# todo changelog type
+
 class Dataset(object):
     def __init__(self, yaml_content: str) -> None:
         self._data = yaml.load(yaml_content)
@@ -49,11 +51,15 @@ class Dataset(object):
         return usages if usages else []
 
     @property
-    def changelog(self) -> List[dict]:
+    def changelog(self) -> List[List]:
         changelog = self.get("changelog")
         return changelog if changelog else []
 
-    def log_change(self, changes: dict) -> None:
+    @property
+    def markdowns(self) -> List[str]:
+        return self.get("markdowns")
+
+    def log_change(self, changes: List) -> None:
         self.changelog.append(changes)
 
     def dict(self) -> dict:

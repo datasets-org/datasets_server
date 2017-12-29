@@ -2,14 +2,12 @@ import copy
 import os
 import subprocess
 import time
+from typing import List
 
 import yaml
+
+from .dataset import Dataset
 from .datasets import Datasets
-
-# todo what is this a skeleton in the closet?
-skeleton = {
-
-}
 
 
 class DatasetsLocal(Datasets):
@@ -80,19 +78,14 @@ class DatasetsLocal(Datasets):
                     self._storage.delete_key(uid, i)
                 self._storage.update(uid, ds)
         self._merge_paths()
-        self._find_md()
+        for k, v in self._storage.data.items():
+            # todo load ds
+            self._find_md(ds)
         self._find_characteristics()
 
-    def log_change(self, uid, changes):
-        # todo change to dataset method - log change
-        stored_ds = self._storage.get(uid)
-        ds = {}
-        if not stored_ds or (stored_ds and "changelog" not in stored_ds):
-            ds["changelog"] = []
-        elif stored_ds:
-            ds["changelog"] = stored_ds["changelog"]
-        ds["changelog"].append(changes)
-        self._storage.update(uid, ds)
+    def log_change(self, dataset: Dataset, changes: List):
+        dataset.log_change(changes)
+        self._storage.update(dataset.id, dataset)
 
     def _merge_paths(self):
         # todo may trigger alerts (when null, ...)
@@ -130,33 +123,18 @@ class DatasetsLocal(Datasets):
         else:
             return list(path)
 
-    def _find_md(self):
-        # todo no load before
-        self._storage.load()
-        # todo call for explict dataset
-        # todo make dataset method
-        for k, v in self._storage.data.items():
-            if "_paths" in v:
-                markdowns = self.normalize_path(
-                    self.find_files(v["_paths"], searched_filename="*.md"))
-                raw_markdowns = [i for i in
-                                 self.find_files(v["_paths"],
-                                                 searched_filename="*.md")]
-                saved = self._storage.get(k)
-                if saved:
-                    if "markdowns" in saved:
-                        if saved["markdowns"] != markdowns:
-                            self.log_change(k, [["markdowns",
-                                                 saved["markdowns"],
-                                                 markdowns, time.time()]])
-                    else:
-                        if markdowns:
-                            self.log_change(k, [["markdowns", None,
-                                                 markdowns, time.time()]])
-                self._storage.update(k, {
-                    "markdowns": markdowns,
-                    "_markdowns": raw_markdowns
-                })
+    def _find_md(self, ds: Dataset):
+        for p in ds.data:
+            # todo get paths - not data
+            markdowns = self.normalize_path(
+                self.find_files(p, searched_filename="*.md"))
+            # todo check if no markdowns found return None
+            if ds.markdowns != markdowns:
+                # todo use changelog entry
+                self.log_change(ds, [["markdowns",
+                                     ds.markdowns,
+                                     markdowns, time.time()]])
+        self._storage.update(ds.id, ds.dict())
 
     def _find_characteristics(self):
         # todo makde dataset method
