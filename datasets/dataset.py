@@ -62,6 +62,10 @@ class Dataset(object):
     def characteristics(self) -> dict:
         return self.get("characteristics")
 
+    @property
+    def path(self) -> List[str]:
+        return self.get("path")
+
     def log_change(self, changes: ChangelogEntry) -> None:
         self.changelog.append(changes.struct())
 
@@ -89,4 +93,6 @@ class Dataset(object):
             d.update({"markdowns": self.markdowns})
         if self.characteristics:
             d.update({"characteristics": self.characteristics})
+        if self.path:
+            d.update({"path": self.path})
         return d

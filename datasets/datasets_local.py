@@ -138,22 +138,21 @@ class DatasetsLocal(Datasets):
 
     def _find_characteristics(self, ds: Dataset):
         # todo move to datasets object
+        path = ds.path
         for p in ds.data:
             # todo change p to valid path
             characteristics = {}
-            for p in p["_paths"]:
-                for d in p["data"]:
-                    file = "characteristics_" + d + ".txt"
-                    pth = os.path.join(p, file)
-                    data_pth = os.path.join(p, d)
-                    if not os.path.exists(pth):
-                        with open(pth, "wb") as f:
-                            proc = subprocess.Popen(
-                                ["./get_characteristics.sh",
-                                 data_pth],
-                                stdout=f)
-                            proc.wait()
-                    characteristics[d] = self._parse_characteristics(pth)
+            file = "characteristics_" + d + ".txt"
+            pth = os.path.join(p, file)
+            data_pth = os.path.join(p, d)
+            if not os.path.exists(pth):
+                with open(pth, "wb") as f:
+                    proc = subprocess.Popen(
+                        ["./get_characteristics.sh",
+                         data_pth],
+                        stdout=f)
+                    proc.wait()
+            characteristics[d] = self._parse_characteristics(pth)
             if characteristics != ds.characteristics:
                 self.log_change(ds, ChangelogEntry("characteristics",
                                                    characteristics,
