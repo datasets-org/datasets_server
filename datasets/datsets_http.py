@@ -44,7 +44,7 @@ class DatasetsHttpJson(Datasets):
             return None  # todo some err
         dataset_content = dataset_request.text
         dataset = Dataset(dataset_content)
-        self._storage.put(dataset.id, dataset.dict())
+        self._storage.put(dataset.id, dataset.struct())
         return dataset
 
     def analyze_dataset(self):

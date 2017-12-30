@@ -6,6 +6,7 @@ from typing import List
 
 import yaml
 
+from .changelog_entry import ChangelogEntry
 from .dataset import Dataset
 from .datasets import Datasets
 
@@ -130,11 +131,10 @@ class DatasetsLocal(Datasets):
                 self.find_files(p, searched_filename="*.md"))
             # todo check if no markdowns found return None
             if ds.markdowns != markdowns:
-                # todo use changelog entry
-                self.log_change(ds, [["markdowns",
-                                     ds.markdowns,
-                                     markdowns, time.time()]])
-        self._storage.update(ds.id, ds.dict())
+                change = ChangelogEntry("markdowns", markdowns,
+                                        old_value=ds.markdowns)
+                self.log_change(ds, change)
+        self._storage.update(ds.id, ds.struct())
 
     def _find_characteristics(self):
         # todo makde dataset method

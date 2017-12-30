@@ -1,9 +1,8 @@
 import yaml
 from typing import Any
 from typing import List
+from .changelog_entry import ChangelogEntry
 
-
-# todo changelog type
 
 class Dataset(object):
     def __init__(self, yaml_content: str) -> None:
@@ -59,10 +58,10 @@ class Dataset(object):
     def markdowns(self) -> List[str]:
         return self.get("markdowns")
 
-    def log_change(self, changes: List) -> None:
-        self.changelog.append(changes)
+    def log_change(self, changes: ChangelogEntry) -> None:
+        self.changelog.append(changes.struct())
 
-    def dict(self) -> dict:
+    def struct(self) -> dict:
         d = {
             "id": self.id,
             "usages": self.usages,
