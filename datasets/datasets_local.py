@@ -2,7 +2,6 @@ import copy
 import os
 import subprocess
 import time
-from typing import List
 
 import yaml
 
@@ -84,7 +83,7 @@ class DatasetsLocal(Datasets):
             self._find_md(ds)
         self._find_characteristics()
 
-    def log_change(self, dataset: Dataset, changes: List):
+    def log_change(self, dataset: Dataset, changes: ChangelogEntry):
         dataset.log_change(changes)
         self._storage.update(dataset.id, dataset)
 
@@ -125,6 +124,7 @@ class DatasetsLocal(Datasets):
             return list(path)
 
     def _find_md(self, ds: Dataset):
+        # todo move to datasets object
         for p in ds.data:
             # todo get paths - not data
             markdowns = self.normalize_path(
@@ -136,14 +136,14 @@ class DatasetsLocal(Datasets):
                 self.log_change(ds, change)
         self._storage.update(ds.id, ds.struct())
 
-    def _find_characteristics(self):
-        # todo makde dataset method
-        self._storage.load()
-        for k, v in self._storage.data.items():
-            if "_paths" in v and "data" in v:
+    def _find_characteristics(self, ds: Dataset):
+        # todo move to datasets object
+        for p in ds.data:
+            # todo change p to valid path
+            if "_paths" in p and "data" in p:
                 characteristics = {}
-                for p in v["_paths"]:
-                    for d in v["data"]:
+                for p in p["_paths"]:
+                    for d in p["data"]:
                         file = "characteristics_" + d + ".txt"
                         pth = os.path.join(p, file)
                         data_pth = os.path.join(p, d)
@@ -155,18 +155,13 @@ class DatasetsLocal(Datasets):
                                     stdout=f)
                                 proc.wait()
                         characteristics[d] = self._parse_characteristics(pth)
-                ds = self._storage.get(k)
-                if "characteristics" in ds:
-                    if characteristics != ds["characteristics"]:
-                        self.log_change(k, [["characteristics",
-                                             ds["characteristics"],
-                                             characteristics, time.time()]])
-                else:
-                    if characteristics:
-                        self.log_change(k, [["characteristics", None,
-                                             characteristics, time.time()]])
-                self._storage.update(k, {
-                    "characteristics": characteristics})
+                ds = self._storage.get(ds.id)
+                # todo if change
+                # todo ds has no characteristics property
+                self.log_change(ds, ChangelogEntry("characteristics",
+                                                   characteristics,
+                                                   old_value=ds.characteristics))
+                self._storage.update(ds.id, ds.struct())
 
     def _parse_characteristics(self, pth):
         with open(pth) as f:
