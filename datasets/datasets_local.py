@@ -140,28 +140,25 @@ class DatasetsLocal(Datasets):
         # todo move to datasets object
         for p in ds.data:
             # todo change p to valid path
-            if "_paths" in p and "data" in p:
-                characteristics = {}
-                for p in p["_paths"]:
-                    for d in p["data"]:
-                        file = "characteristics_" + d + ".txt"
-                        pth = os.path.join(p, file)
-                        data_pth = os.path.join(p, d)
-                        if not os.path.exists(pth):
-                            with open(pth, "wb") as f:
-                                proc = subprocess.Popen(
-                                    ["./get_characteristics.sh",
-                                     data_pth],
-                                    stdout=f)
-                                proc.wait()
-                        characteristics[d] = self._parse_characteristics(pth)
-                ds = self._storage.get(ds.id)
-                # todo if change
-                # todo ds has no characteristics property
+            characteristics = {}
+            for p in p["_paths"]:
+                for d in p["data"]:
+                    file = "characteristics_" + d + ".txt"
+                    pth = os.path.join(p, file)
+                    data_pth = os.path.join(p, d)
+                    if not os.path.exists(pth):
+                        with open(pth, "wb") as f:
+                            proc = subprocess.Popen(
+                                ["./get_characteristics.sh",
+                                 data_pth],
+                                stdout=f)
+                            proc.wait()
+                    characteristics[d] = self._parse_characteristics(pth)
+            if characteristics != ds.characteristics:
                 self.log_change(ds, ChangelogEntry("characteristics",
                                                    characteristics,
                                                    old_value=ds.characteristics))
-                self._storage.update(ds.id, ds.struct())
+            self._storage.update(ds.id, ds.struct())
 
     def _parse_characteristics(self, pth):
         with open(pth) as f:

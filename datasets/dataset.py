@@ -58,6 +58,10 @@ class Dataset(object):
     def markdowns(self) -> List[str]:
         return self.get("markdowns")
 
+    @property
+    def characteristics(self) -> dict:
+        return self.get("characteristics")
+
     def log_change(self, changes: ChangelogEntry) -> None:
         self.changelog.append(changes.struct())
 
@@ -81,4 +85,8 @@ class Dataset(object):
             d.update({"maintainer": self.maintainer})
         if self.tags:
             d.update({"tags": self.tags})
+        if self.markdowns:
+            d.update({"markdowns": self.markdowns})
+        if self.characteristics:
+            d.update({"characteristics": self.characteristics})
         return d
