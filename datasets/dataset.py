@@ -10,6 +10,7 @@ class Dataset(object):
         if "id" not in self._data:
             raise Exception("Dataset is missing an id")
         self.id = self.get("id")
+        self._tmp_changes = []
         # todo separate structure from parse (for DB load)
 
     def get(self, key: str) -> Any:
@@ -63,11 +64,30 @@ class Dataset(object):
         return self.get("characteristics")
 
     @property
-    def path(self) -> List[str]:
+    def path(self) -> str:
+        """ dataset basepath (path to dataset.yaml)
+
+        Returns:
+            (str): basepath
+        """
         return self.get("path")
 
-    def log_change(self, changes: ChangelogEntry) -> None:
-        self.changelog.append(changes.struct())
+    @property
+    def links(self) -> List[str]:
+        return self.get("links")
+
+    def log_change(self, change: ChangelogEntry) -> None:
+        self._tmp_changes.append(change.struct())
+
+    def process_change(self, property, value) -> None:
+        if getattr(self, property) != value:
+            change = ChangelogEntry(property, value,
+                                    old_value=getattr(self, property))
+            self.log_change(change)
+
+    def flush_changes(self) -> None:
+        self.changelog.append(self._tmp_changes)
+        self._tmp_changes = []
 
     def struct(self) -> dict:
         d = {
@@ -95,4 +115,6 @@ class Dataset(object):
             d.update({"characteristics": self.characteristics})
         if self.path:
             d.update({"path": self.path})
+        if self.links:
+            d.update({"links": self.links})
         return d

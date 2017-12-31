@@ -67,7 +67,7 @@ def update(id):
     # todo log only which things changed
     data = request.json
     stored = db.get(id)
-    d.log_change(id, [[None, stored, data, time.time()]])
+    d.log_changes(id, [[None, stored, data, time.time()]])
     db.update(id, data)
     return '', 200
 

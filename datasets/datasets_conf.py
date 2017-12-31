@@ -27,5 +27,9 @@ class DatasetsConf(Config):
             '/app/data/',
             '/data/',
         ]
+        self.storages = [
+            ("default", "fs", "/"),
+            """ name, type, path """
+        ]
         super().__init__(order=order)
         self.configure()

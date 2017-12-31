@@ -11,8 +11,9 @@ from .http_conf import HttpConf
 
 class DatasetsHttpJson(Datasets):
     def __init__(self, conf: HttpConf, storage: Storage) -> None:
+        # todo handle different confs, or merge them
         self._conf = conf
-        super().__init__(storage)
+        super().__init__(storage, conf)
 
     def scan_dir(self, path: str, recursive: bool = True, results=None) -> \
             List[Dataset]:
@@ -31,7 +32,7 @@ class DatasetsHttpJson(Datasets):
                     self.scan_dir(url_path_join(path, name), results=results)
             if i.get("type") == "file":
                 name = i.get("name")
-                if name == self.datsets_filename:
+                if name == self.datasets_filename:
                     ds = self.get_dataset(url_path_join(path, name))
                     results.append(ds)
         # todo store
@@ -46,6 +47,10 @@ class DatasetsHttpJson(Datasets):
         dataset = Dataset(dataset_content)
         self._storage.put(dataset.id, dataset.struct())
         return dataset
+
+    def get_path(self):
+        # todo get args and pass them to urlpathjoin
+        pass
 
     def analyze_dataset(self):
         # todo
