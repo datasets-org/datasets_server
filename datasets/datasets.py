@@ -47,13 +47,12 @@ class Datasets(object):
             key: dataset id
             data: usage specs
         """
-        ds = self._storage.get(key)
-        if "usages" not in ds:
-            ds["usages"] = []
+        ds = self._storage.get(key)  # type: Dataset
+
         data.update({
             "timestamp": time.time(),
         })
-        ds["usages"].append(data)
+        ds.usages.append(data)
         self._storage.update(key, ds)
 
     def get(self, key: str) -> dict:

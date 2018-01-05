@@ -2,6 +2,7 @@ import os
 import subprocess
 from typing import Optional
 
+from .dataset_type import DatasetType
 from .dataset import Dataset
 from .datasets import Datasets
 
@@ -12,15 +13,6 @@ class DatasetsLocal(Datasets):
         self._storage = storage
         # todo set basepath based on config
         self.basepath = "/"
-        self.generated_fields = {
-            "paths",  # done
-            "links",  # done
-            "changelog",  # handled separately
-            "type",  # todo
-            "usages",  # provided directly
-            "characteristics",  # done
-            "markdowns"  # done
-        }
         super().__init__(storage, cfg)
 
     def ds_path(self, dataset_file_path: str) -> str:
@@ -36,18 +28,19 @@ class DatasetsLocal(Datasets):
             ds = Dataset(open(d).read())
             # is stored?
             stored_ds = None  # todo load and parse
-            # todo if new set type to fs
+            if not ds.type:
+                ds.type = DatasetType.FS
 
-            # todo static field names
+            # todo dataset server will be needed
             # todo propagate data to object
             path = self.ds_path(f)
-            ds.process_change("path", path)
+            ds.process_change(ds.path_name, path)
             link = self.link_path(f)
-            ds.process_change("links", link)
+            ds.process_change(ds.links_name, link)
             md = self.find_md(ds)
-            ds.process_change("markdowns", md)
+            ds.process_change(ds.markdowns_name, md)
             characteristics = self.get_characteristics(ds)
-            ds.process_change("characteristics", characteristics)
+            ds.process_change(ds.characteristics_name, characteristics)
 
             ds.flush_changes()
             self._storage.update(ds.id, ds.struct())
