@@ -2,6 +2,7 @@ import time
 import uuid
 from typing import List
 from typing import Tuple
+from typing import Optional
 
 from storage.storage import Storage
 from .characteristics import parse_characteristics
@@ -55,7 +56,7 @@ class Datasets(object):
         ds.usages.append(data)
         self._storage.update(key, ds)
 
-    def get(self, key: str) -> dict:
+    def get(self, key: str) -> Optional[dict]:
         return self._storage.get(key)
 
     def create(self, key: str, data: dict) -> None:
@@ -97,6 +98,13 @@ class Datasets(object):
     def remove_dataset(self):
         # todo
         pass
+
+    def store(self, ds: Dataset) -> None:
+        # todo this is not deling keys
+        self._storage.update(ds.id, ds.struct())
+
+    def get_ds_by_id(self, id: str) -> Optional[Dataset]:
+        return self.get(id)
 
     def get_path(self, *args) -> str:
         raise NotImplementedError("You have to use specific implementation")

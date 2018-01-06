@@ -3,7 +3,7 @@ import subprocess
 from typing import Optional
 
 from .dataset_type import DatasetType
-from .dataset import Dataset
+from .dataset import Dataset, YamlDataset
 from .datasets import Datasets
 
 
@@ -25,36 +25,28 @@ class DatasetsLocal(Datasets):
 
     def process_ds(self, f):
         for d in self.scan(f):
-            ds = Dataset(open(d).read())
-            # is stored?
-            stored_ds = None  # todo load and parse
-            if not ds.type:
-                ds.type = DatasetType.FS
+            ds = YamlDataset(open(d).read())
+            stored_ds = self.get_ds_by_id(ds.id)
+            stored_ds = stored_ds if stored_ds else ds
+            if not stored_ds.type:
+                stored_ds.type = DatasetType.FS
+
+            # todo diff stored and loaded
 
             # todo dataset server will be needed
-            # todo propagate data to object
             path = self.ds_path(f)
-            ds.process_change(ds.path_name, path)
+            stored_ds.process_change(stored_ds.path_name, path)
             link = self.link_path(f)
-            ds.process_change(ds.links_name, link)
-            md = self.find_md(ds)
-            ds.process_change(ds.markdowns_name, md)
+            stored_ds.process_change(stored_ds.links_name, link)
+            md = self.find_md(stored_ds)
+            stored_ds.process_change(stored_ds.markdowns_name, md)
             characteristics = self.get_characteristics(ds)
-            ds.process_change(ds.characteristics_name, characteristics)
+            stored_ds.process_change(stored_ds.characteristics_name,
+                                     characteristics)
 
-            ds.flush_changes()
-            self._storage.update(ds.id, ds.struct())
+            stored_ds.flush_changes()
 
-            removed = []
-
-            # if actions:
-            #     self.log_change(ds.id, actions)
-
-            # todo something like if None
-            for i in removed:
-                self._storage.delete_key(ds.id, i)
-
-            self._storage.update(ds.id, ds)
+            self.store(stored_ds)
 
     def get_path(self, *args) -> str:
         return os.path.join(self.basepath, *args)

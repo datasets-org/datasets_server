@@ -6,8 +6,8 @@ from .changelog_entry import ChangelogEntry
 
 class Dataset(object):
     # todo move this to lib and let people work with it
-    def __init__(self, yaml_content: str) -> None:
-        self._data = yaml.load(yaml_content)
+    def __init__(self, data: dict) -> None:
+        self._data = data
         if "id" not in self._data:
             raise Exception("Dataset is missing an id")
         self.id_name = "id"
@@ -21,92 +21,105 @@ class Dataset(object):
         self.usages_name = "usages"
         self.changelog_name = "changelog"
         self.markdowns_name = "markdowns"
-        self.characteristics_name = "characteristics_name"
+        self.characteristics_name = "characteristics"
         self.links_name = "links"
         self.path_name = "path"
         self.type_name = "type"
+        self.servers_name = "servers"
 
-        self.id = self.get("id")
+        self.id = self._get(self.id_name)
         self._tmp_changes = []
 
-        # todo load here from data and store to properties
-        self.type = self.get_type()
-        # todo separate structure from parse (for DB load)
+        self.data = self._get_data()
+        self.name = self._get_name()
+        self.internal = self._get_internal()
+        self.from_ds = self._get_from_ds()
+        self.url = self._get_url()
+        self.maintainer = self._get_maintainer()
+        self.tags = self._get_tags()
+        self.type = self._get_type()
+        self.usages = self._get_usages()
+        self.changelog = self._get_changelog()
+        self.markdowns = self._get_markdowns()
+        self.characteristics = self._get_characteristics()
+        self.path = self._get_path()
+        self.links = self._get_links()
+        self.servers = self._get(self.servers_name, [])
 
-    def get(self, key: str) -> Any:
-        return self._data.get(key)
+    def _get(self, key: str, default: Any = None) -> Any:
+        return self._data.get(key, default=default)
 
-    @property
-    def data(self) -> List[str]:
+    def _get_data(self) -> List[str]:
         # todo may be also dict?
-        return self.get(self.data_name)
+        return self._get(self.data_name)
 
-    @property
-    def name(self) -> str:
-        return self.get(self.name_name)
+    # todo methods are unreasonable for the simple cases
+    def _get_name(self) -> str:
+        return self._get(self.name_name)
 
-    @property
-    def internal(self) -> bool:
-        return self.get(self.internal_name)
+    def _get_internal(self) -> bool:
+        return self._get(self.internal_name)
 
-    @property
-    def from_ds(self) -> str:
-        return self.get(self.from_name)
+    def _get_from_ds(self) -> str:
+        return self._get(self.from_name)
 
-    @property
-    def url(self) -> str:
-        return self.get(self.from_name)
+    def _get_url(self) -> str:
+        return self._get(self.from_name)
 
-    @property
-    def maintainer(self) -> str:
-        return self.get(self.maintainer_name)
+    def _get_maintainer(self) -> str:
+        return self._get(self.maintainer_name)
 
-    @property
-    def tags(self) -> List[str]:
-        return self.get(self.tags_name)
+    def _get_tags(self) -> List[str]:
+        return self._get(self.tags_name)
 
-    def get_type(self) -> str:
-        return self.get(self.type_name)
+    def _get_type(self) -> str:
+        return self._get(self.type_name)
 
-    @property
-    def usages(self) -> List[dict]:
-        usages = self.get(self.usages_name)
+    def _get_usages(self) -> List[dict]:
+        usages = self._get(self.usages_name)
         return usages if usages else []
 
-    @property
-    def changelog(self) -> List[List]:
-        changelog = self.get(self.changelog_name)
+    def _get_changelog(self) -> List[List]:
+        changelog = self._get(self.changelog_name)
         return changelog if changelog else []
 
-    @property
-    def markdowns(self) -> List[str]:
-        return self.get(self.markdowns_name)
+    def _get_markdowns(self) -> List[str]:
+        return self._get(self.markdowns_name)
 
-    @property
-    def characteristics(self) -> dict:
-        return self.get(self.characteristics_name)
+    def _get_characteristics(self) -> dict:
+        return self._get(self.characteristics_name)
 
-    @property
-    def path(self) -> str:
+    def _get_path(self) -> str:
         """ dataset basepath (path to dataset.yaml)
 
         Returns:
             (str): basepath
         """
-        return self.get(self.path_name)
+        return self._get(self.path_name)
 
-    @property
-    def links(self) -> List[str]:
-        return self.get(self.links_name)
+    def _get_links(self) -> List[str]:
+        return self._get(self.links_name)
+
+    def __contains__(self, item):
+        return item in vars(self)
+
+    def __getitem__(self, item):
+        return self._get(item)
+
+    def __setitem__(self, key, value):
+        return setattr(self, key, value)
 
     def log_change(self, change: ChangelogEntry) -> None:
         self._tmp_changes.append(change.struct())
 
-    def process_change(self, property, value) -> None:
-        if getattr(self, property) != value:
-            change = ChangelogEntry(property, value,
-                                    old_value=getattr(self, property))
+    def process_change(self, prop, value) -> None:
+        if prop == "from":
+            prop = "from_ds"
+        if getattr(self, prop) != value:
+            change = ChangelogEntry(prop, value,
+                                    old_value=getattr(self, prop))
             self.log_change(change)
+            setattr(self, prop, value)
 
     def flush_changes(self) -> None:
         self.changelog.append(self._tmp_changes)
@@ -117,6 +130,7 @@ class Dataset(object):
             self.id_name: self.id,
             self.usages_name: self.usages,
             self.changelog_name: self.changelog,
+            self.servers: self.servers,
         }
         if self.data:
             d.update({self.data_name: self.data})
@@ -132,6 +146,8 @@ class Dataset(object):
             d.update({self.maintainer_name: self.maintainer})
         if self.tags:
             d.update({self.tags_name: self.tags})
+        if self.type:
+            d.update({self.type_name: self.type})
         if self.markdowns:
             d.update({self.markdowns_name: self.markdowns})
         if self.characteristics:
@@ -141,3 +157,8 @@ class Dataset(object):
         if self.links:
             d.update({self.links_name: self.links})
         return d
+
+
+class YamlDataset(Dataset):
+    def __init__(self, yaml_content: str) -> None:
+        super(YamlDataset, self).__init__(yaml.load(yaml_content))
