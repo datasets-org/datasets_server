@@ -27,7 +27,7 @@ class DatasetsConf(Config):
             '/app/data/',
             '/data/',
         ]
-        self.storages = [
+        self.storage = [
             ("default", "fs", "/"),
             """ name, type, path """
         ]

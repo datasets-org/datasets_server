@@ -1,6 +1,6 @@
-from datasets.datsets_http import DatasetsHttpJson
+from datasets.manager.datsets_http import DatasetsHttpJson
 from storage.dict_storage import DictStorage
-from datasets.http_conf import HttpConf
+from datasets.conf.http_conf import HttpConf
 from confobj import ConfigDict
 
 

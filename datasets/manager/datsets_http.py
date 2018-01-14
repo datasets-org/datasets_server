@@ -4,9 +4,9 @@ import requests
 from urljoin import url_path_join
 
 from storage.storage import Storage
-from .dataset import Dataset
+from datasets.struct.dataset import Dataset
 from .datasets import Datasets
-from .http_conf import HttpConf
+from datasets.conf.http_conf import HttpConf
 
 
 class DatasetsHttpJson(Datasets):

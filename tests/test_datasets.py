@@ -1,5 +1,5 @@
 from storage.dict_storage import DictStorage
-from datasets.datasets import Datasets
+from datasets.manager.datasets import Datasets
 
 # TODO old tests
 # from conf import Cfg
@@ -37,12 +37,12 @@ def test_use():
     assert "usages" in d.get("k0")
     u = d.get("k0").get("usages")
     assert len(u) == 1
-    assert u[0].get("a") == 1
+    assert u[0]._get("a") == 1
     assert "timestamp" in u[0]
     d.use("k0", {"a": 2})
     u = d.get("k0").get("usages")
     assert len(u) == 2
-    assert u[0].get("a") == 1
+    assert u[0]._get("a") == 1
     assert "timestamp" in u[0]
-    assert u[1].get("a") == 2
+    assert u[1]._get("a") == 2
     assert "timestamp" in u[1]

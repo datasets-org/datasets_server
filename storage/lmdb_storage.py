@@ -49,7 +49,7 @@ class LmdbStorage(Storage):
 
     def get(self, key):
         with self.env.begin() as txn:
-            data = txn.get(key.encode("utf-8"))
+            data = txn._get(key.encode("utf-8"))
             if data:
                 return ujson.loads(data.decode("utf-8"))
             else:

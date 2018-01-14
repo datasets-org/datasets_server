@@ -2,17 +2,22 @@ import os
 import subprocess
 from typing import Optional
 
-from .dataset_type import DatasetType
-from .dataset import Dataset, YamlDataset
+from datasets.conf.datasets_conf import DatasetsConf
+from datasets.struct.storage_server import StorageServer
+from storage.storage import Storage
+from datasets.struct.dataset_type import DatasetType
+from datasets.struct.dataset import YamlDataset
 from .datasets import Datasets
 
 
 class DatasetsLocal(Datasets):
-    def __init__(self, cfg, storage):
+    def __init__(self,
+                 cfg: DatasetsConf,
+                 storage: Storage,
+                 storage_server: StorageServer) -> None:
         self._cfg = cfg
         self._storage = storage
-        # todo set basepath based on config
-        self.basepath = "/"
+        self.storage_server = storage_server
         super().__init__(storage, cfg)
 
     def ds_path(self, dataset_file_path: str) -> str:
@@ -25,31 +30,31 @@ class DatasetsLocal(Datasets):
 
     def process_ds(self, f):
         for d in self.scan(f):
-            ds = YamlDataset(open(d).read())
-            stored_ds = self.get_ds_by_id(ds.id)
-            stored_ds = stored_ds if stored_ds else ds
-            if not stored_ds.type:
-                stored_ds.type = DatasetType.FS
+            new_ds = YamlDataset(open(d).read())
+            stored_ds = self.get_ds_by_id(new_ds.id)
+            # handle new dataset
+            ds = stored_ds if stored_ds else new_ds
+            ds.diff(new_ds)
 
-            # todo diff stored and loaded
-
-            # todo dataset server will be needed
-            path = self.ds_path(f)
-            stored_ds.process_change(stored_ds.path_name, path)
+            if not ds.type:
+                ds.type = DatasetType.FS
+            srv = self.storage_server.name
+            if srv not in ds.servers:
+                ds.servers.append(srv)
+            ds.path = self.ds_path(f)
             link = self.link_path(f)
-            stored_ds.process_change(stored_ds.links_name, link)
-            md = self.find_md(stored_ds)
-            stored_ds.process_change(stored_ds.markdowns_name, md)
-            characteristics = self.get_characteristics(ds)
-            stored_ds.process_change(stored_ds.characteristics_name,
-                                     characteristics)
+            if link not in ds.links:
+                ds.links.append(link)
+            md = self.find_md(ds)
+            if md not in ds.markdowns:
+                ds.markdowns.append(md)
+            ds.characteristics = self.get_characteristics(ds)
 
-            stored_ds.flush_changes()
-
-            self.store(stored_ds)
+            ds.flush_changes()
+            self.store(ds)
 
     def get_path(self, *args) -> str:
-        return os.path.join(self.basepath, *args)
+        return os.path.join(self.storage_server.path, *args)
 
     def generate_characteristics(self, data_pth: str, out_file: str,
                                  force: bool = False) -> dict:

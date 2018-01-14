@@ -1,10 +1,8 @@
-import os
 import ujson
 from flask import Flask, request
 import time
-from multiprocessing import Process
 
-from datasets.datasets import generate
+from datasets.manager.datasets import generate
 from .conf import DatasetsConf
 from datasets import DatasetsLocal
 from storage.lmdbStorage import LmdbStorage
@@ -70,6 +68,11 @@ def update(id):
     d.log_changes(id, [[None, stored, data, time.time()]])
     db.update(id, data)
     return '', 200
+
+
+@app.route("/storage")
+def storage():
+    return ujson.dumps(d.storage())
 
 
 # todo load data directly from storage
