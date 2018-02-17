@@ -9,10 +9,11 @@ class Storage(object):
         raise NotImplementedError()
 
     def delete_key(self, key, dict_key):
+        # todo this should not be needed
         raise NotImplementedError()
 
     def get(self, key):
         raise NotImplementedError()
 
-    def load(self):
+    def items(self):
         raise NotImplementedError()

@@ -1,7 +1,7 @@
 import yaml
 from typing import Any, Set
 from typing import List
-from datasets.struct.changelog_entry import ChangelogEntry
+from .changelog_entry import ChangelogEntry
 
 
 class Dataset(object):
@@ -83,12 +83,14 @@ class Dataset(object):
         return self._get(self.type_name)
 
     def _get_usages(self) -> List[dict]:
-        usages = self._get(self.usages_name)
-        return usages if usages else []
+        # todo sort
+        return self._get(self.usages_name, [])
 
     def _get_changelog(self) -> List[List]:
-        changelog = self._get(self.changelog_name)
-        return changelog if changelog else []
+        # todo parse to struct
+        # todo sort
+        # sorted(data["changelog"], key=lambda x: x[0][3], reverse=True)
+        return self._get(self.changelog_name, [])
 
     def _get_markdowns(self) -> List[str]:
         return self._get(self.markdowns_name)

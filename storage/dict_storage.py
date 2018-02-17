@@ -20,5 +20,5 @@ class DictStorage(Storage):
     def get(self, key):
         return self.data.get(key)
 
-    def load(self):
-        pass
+    def items(self):
+        return self.data.items()

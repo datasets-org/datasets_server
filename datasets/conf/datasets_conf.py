@@ -20,6 +20,7 @@ from confobj import ConfigEnv
 
 class DatasetsConf(Config):
     def __init__(self, order: Tuple[ConfigBase] = (ConfigEnv(),)) -> None:
+        # todo separate storage conf?
         self.database_path = "database"
         self.iter_file_limit = 200
         self.datasets = ["data"]
@@ -28,7 +29,7 @@ class DatasetsConf(Config):
             '/data/',
         ]
         self.storage = [
-            ("default", "fs", "/"),
+            ["default", "fs", "/"],
             """ name, type, path """
         ]
         super().__init__(order=order)

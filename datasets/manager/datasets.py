@@ -3,11 +3,14 @@ import uuid
 from typing import List
 from typing import Tuple
 from typing import Optional
+from typing import Dict
 
-from storage.storage import Storage
+from datasets.storage.storage import Storage
 from datasets.characteristics import parse_characteristics
 from datasets.struct.dataset import Dataset
 from datasets.conf.datasets_conf import DatasetsConf
+
+from datasets_server.datasets.struct.storage_server import StorageServer
 
 
 class Datasets(object):
@@ -16,6 +19,13 @@ class Datasets(object):
         self._storage: Storage = storage
         self.datasets_filename = "dataset.yaml"
         self._conf = conf
+        self.storage_servers = {}  # type: Dict[StorageServer]:
+        self._parse_storage()
+
+    def _parse_storage(self):
+        for i in self._conf.storage:
+            ss = StorageServer.parse_from_list(i)
+            self.storage_servers[ss.name](ss)
 
     def generate(self) -> str:
         """ Get id for new dataset
@@ -56,16 +66,19 @@ class Datasets(object):
         ds.usages.append(data)
         self._storage.update(key, ds)
 
-    def storage(self) -> List[Tuple[str, str, str]]:
-        """ Return configured servers
-
-        Returns:
-            List: configured servers
-        """
-        return self._conf.storage
-
-    def get(self, key: str) -> Optional[dict]:
+    def _get(self, key: str) -> Optional[dict]:
         return self._storage.get(key)
+
+    def get_all(self, fields: List[str] = None, sort_by: str = None) \
+            -> List[Dataset]:
+        data = {}
+        if not fields:
+            fields = ["name", "tags", "paths"]
+        for k, v in self._storage.items():
+            data[k] = {key: v[key] for key in fields}
+        if sort_by:
+            data = sorted(data.items(), key=lambda x: x[1][sort_by])
+        return data
 
     def create(self, key: str, data: dict) -> None:
         self._storage.put(key, data)
@@ -88,7 +101,8 @@ class Datasets(object):
                 data_pth, characteristics_pth, force=force_generate)
         return characteristics
 
-    def parse_characteristics(self, content):
+    @staticmethod
+    def parse_characteristics(content):
         return parse_characteristics(content)
 
     def remove_dataset(self):
@@ -101,7 +115,7 @@ class Datasets(object):
         self._storage.update(ds.id, ds.struct())
 
     def get_ds_by_id(self, uid: str) -> Optional[Dataset]:
-        return self.get(uid)
+        return self._get(uid)
 
     def get_path(self, *args) -> str:
         raise NotImplementedError("You have to use specific implementation")

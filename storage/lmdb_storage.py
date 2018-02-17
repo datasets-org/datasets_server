@@ -6,20 +6,9 @@ from .storage import Storage
 class LmdbStorage(Storage):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.data = {}
         # todo set size reasonably
         self.env = lmdb.open(self.cfg.database_path, map_size=50 * 1024 ** 3)
         super().__init__()
-
-    def load(self):
-        print("loading storage from {}".format(self.cfg.database_path))
-        self.data = {}
-        with self.env.begin() as txn:
-            cursor = txn.cursor()
-            for key, value in cursor:
-                key = key.decode("utf-8")
-                data = ujson.loads(value.decode("utf-8"))
-                self.data[key] = data
 
     def put(self, key, data):
         with self.env.begin(write=True) as txn:
@@ -54,3 +43,13 @@ class LmdbStorage(Storage):
                 return ujson.loads(data.decode("utf-8"))
             else:
                 return None
+
+    def items(self):
+        data = {}
+        with self.env.begin() as txn:
+            cursor = txn.cursor()
+            for key, value in cursor:
+                key = key.decode("utf-8")
+                data = ujson.loads(value.decode("utf-8"))
+                data[key] = data
+        return data.items()

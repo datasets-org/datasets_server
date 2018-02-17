@@ -2,77 +2,71 @@ import ujson
 from flask import Flask, request
 import time
 
-from datasets.manager.datasets import generate
-from .conf import DatasetsConf
-from datasets import DatasetsLocal
-from storage.lmdbStorage import LmdbStorage
+from .datasets.conf.datasets_conf import DatasetsConf
+from .datasets.manager.datasets_local import DatasetsLocal
+from .datasets.manager.datasets import Datasets
+from .datasets.storage.lmdbStorage import LmdbStorage
 
 app = Flask(__name__)
 
 cfg = DatasetsConf()
 db = LmdbStorage(cfg)
-db.load()
-d = DatasetsLocal(cfg, db)
+# d = DatasetsLocal(cfg, db)
+ds = Datasets(db, cfg)
 
 
 @app.route("/")
 def main():
-    # todo sort by what?
-    sort = False
-    if "sort" in request.form:
-        sort = bool(request.form['sort'])
-    data = {}
-    keys = ["name", "tags", "paths"]
-    for k, v in db.data.items():
-        data[k] = {key: v[key] for key in keys}
-    if sort:
-        sort_by = "name"
-        data = sorted(data.items(), key=lambda x: x[1][sort_by])
-    return ujson.dumps(data)
+    sort = request.form['sort'] if "sort" in request.form else None
+    fields = request.form['fields'].split(",") if 'fields' in request.form \
+        else None
+    return ujson.dumps(ds.get_all(fields=fields, sort_by=sort))
 
 
-@app.route("/detail/<id>")
-def detail(id):
-    data = db.get(id)
+@app.route("/detail/<ds_id>")
+def detail(ds_id):
+    data = ds.get_ds_by_id(ds_id)
     if "usages" in data:
+        # todo usages should be sorted by default
         data["usages"] = sorted(data["usages"], key=lambda x: x["timestamp"],
                                 reverse=True)
     if "changelog" in data:
+        # todo changelog should be sorted by default
         data["changelog"] = sorted(data["changelog"], key=lambda x: x[0][3],
                                    reverse=True)
     if "characteristics" in data:
         data["characteristics"] = sorted(data["characteristics"].items(),
                                          key=lambda x: x[0])
-        for i, (k, v) in enumerate(data["characteristics"]):
+        for i, (k, v) in e1numerate(data["characteristics"]):
             data["characteristics"][i] = (
                 k, sorted(v.items(), key=lambda x: x[0]))
 
     return ujson.dumps(data)
 
 
-@app.route("/use/<id>", methods=['POST'])
-def use(id):
-    data = db.get(id)
+@app.route("/use/<ds_id>", methods=['POST'])
+def use(ds_id):
+    data = ds.get_ds_by_id(ds_id)
     usage = request.json
     if "action" not in usage:
         usage["action"] = "read"
-    d.use(id, usage)
+    ds.use(ds_id, usage)
     return ujson.dumps(data)
 
 
-@app.route("/update/<id>", methods=['POST'])
-def update(id):
+@app.route("/update/<ds_id>", methods=['POST'])
+def update(ds_id):
     # todo log only which things changed
     data = request.json
-    stored = db.get(id)
-    d.log_changes(id, [[None, stored, data, time.time()]])
-    db.update(id, data)
+    stored = ds.get_ds_by_id(ds_id)
+    data.log_change(id, [[None, stored, data, time.time()]])
+    ds.store(data)
     return '', 200
 
 
 @app.route("/storage")
 def storage():
-    return ujson.dumps(d.storage())
+    return ujson.dumps([i.struct() for i in ds.storage_servers.values()])
 
 
 # todo load data directly from storage
@@ -103,7 +97,7 @@ def storage():
 
 @app.route("/new")
 def new():
-    return ujson.dumps(generate(d.storage))
+    return ujson.dumps(ds.generate())
 
 
 if __name__ == "__main__":
