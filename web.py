@@ -37,7 +37,7 @@ def detail(ds_id):
     if "characteristics" in data:
         data["characteristics"] = sorted(data["characteristics"].items(),
                                          key=lambda x: x[0])
-        for i, (k, v) in e1numerate(data["characteristics"]):
+        for i, (k, v) in enumerate(data["characteristics"]):
             data["characteristics"][i] = (
                 k, sorted(v.items(), key=lambda x: x[0]))
 
