@@ -100,5 +100,15 @@ def new():
     return ujson.dumps(ds.generate())
 
 
+@app.route("/task")
+def tasks():
+    return ujson.dumps(ds.tasks.list())
+
+
+@app.route("/task/<task_id>")
+def task(task_id):
+    return ujson.dumps(ds.tasks.get(task_id))
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0")

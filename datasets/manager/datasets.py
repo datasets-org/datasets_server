@@ -5,12 +5,14 @@ from typing import Tuple
 from typing import Optional
 from typing import Dict
 
-from datasets.storage.storage import Storage
+from storage.storage import Storage
 from datasets.characteristics import parse_characteristics
 from datasets.struct.dataset import Dataset
 from datasets.conf.datasets_conf import DatasetsConf
 
-from datasets_server.datasets.struct.storage_server import StorageServer
+from datasets.struct.storage_server import StorageServer
+
+from datasets.manager.tasks import Tasks
 
 
 class Datasets(object):
@@ -21,11 +23,12 @@ class Datasets(object):
         self._conf = conf
         self.storage_servers = {}  # type: Dict[StorageServer]:
         self._parse_storage()
+        self.tasks = Tasks(storage)
 
     def _parse_storage(self):
         for i in self._conf.storage:
             ss = StorageServer.parse_from_list(i)
-            self.storage_servers[ss.name](ss)
+            self.storage_servers[ss.name] = ss
 
     def generate(self) -> str:
         """ Get id for new dataset

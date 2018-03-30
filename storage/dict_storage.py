@@ -15,7 +15,7 @@ class DictStorage(Storage):
         self.data.pop(key)
 
     def delete_key(self, key, dict_key):
-        self.data.get(key, {}).pop(dict_key)
+        self.data.get(key, {}).pop(dict_key, None)
 
     def get(self, key):
         return self.data.get(key)

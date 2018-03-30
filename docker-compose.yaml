@@ -27,7 +27,7 @@ services:
     - http
     volumes:
     - "./:/app"
-    command: pytest tests
+    entrypoint: pytest
   http:
     image: nginx
     volumes:
