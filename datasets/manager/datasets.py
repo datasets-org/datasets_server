@@ -23,6 +23,7 @@ class Datasets(object):
         self._conf = conf
         self.storage_servers = {}  # type: Dict[StorageServer]:
         self._parse_storage()
+        # todo separate namespace
         self.tasks = Tasks(storage)
 
     def _parse_storage(self):
